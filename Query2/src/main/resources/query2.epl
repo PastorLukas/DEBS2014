@@ -1,0 +1,167 @@
+// Declare the name for the module
+//module cz.muni.fi.sbapr.debs2014.query2;
+module query2;
+
+// Import any Java classes in an application package 
+import cz.muni.fi.sbapr.debs2014.anotation.*;
+import cz.muni.fi.sbapr.debs2014.event.*;
+import cz.muni.fi.sbapr.debs2014.subscriber.*;
+import cz.muni.fi.sbapr.debs2014.listener.*;
+
+// Declare other module(s) that this module depends on
+// uses org.myorganization.common;
+
+// Import any Java classes in an application package 
+import cz.muni.fi.sbapr.debs2014.event.*;
+import cz.muni.fi.sbapr.debs2014.event.subscriber.*;
+import cz.muni.fi.sbapr.debs2014.event.listener.*;
+
+
+// Declare an event type based on a Java class in the package that was imported as above
+//@Name('SensorEvent')
+//create schema SensorEvent as SensorEvent;
+
+@Name('SensorEventStream')
+insert into SensorEventStream select * from SensorEvent;
+
+//@Name('LoadSensorEventStream')
+//select * from SensorEvent(property = true) as LoadSensorEventStream; 
+
+@Name('SegmentedByHouse')
+create context SegmentedByHouse partition by houseId from SensorEventStream;
+
+@Name('SegmentedByHousehold')
+create context SegmentedByHousehold partition by houseId and householdId from SensorEventStream;
+
+@Name('SegmentedByPlug')
+create context SegmentedByPlug partition by houseId and householdId and plugId from SensorEventStream;
+
+@Name('NestedContext')
+create context NestedContext
+    context SegmentedByHouse partition by houseId from SensorEventStream,
+    context SegmentedByHousehold partition by householdId from SensorEventStream,
+    context SegmentedByPlug partition by plugId from SensorEventStream;
+
+@Name('RuntimeReportingStatement')
+select current_timestamp() as runtime
+from pattern [every timer:interval(1 sec)];
+
+//@Name('PlugCount')
+//context SegmentedByHouse create variable integer plugCount = 0;
+
+//context SegmentedByHouseholdId
+//on SensorEvent 
+//set plugCount = plugCount + 1;
+   
+//context.nested_context_name.property_name
+//context.SegmentedByHouse
+//context.nested_context_name.stream_name.property_name
+
+
+//@Name('TestStream')
+//context NestedContext
+//select 
+    //context.id as id
+    //,context.SegmentedByHouse.id as house
+    //,context.SegmentedByHousehold.id as household
+    //,context.SegmentedByPlug.id as plug    
+//from SensorEventStream
+//group by household, plugId
+//output all
+//;
+
+@Name('TestStream')
+insert into HouseholdPlugCount
+select houseId, householdId, count(distinct plugId) as plugCount   
+from SensorEventStream
+group by houseId, householdId;
+
+//@Name('TestStream')
+//insert into HouseholdPlugCount
+//context SegmentedByHousehold
+//select houseId, householdId, count(distinct plugId) as plugCount   
+//from SensorEventStream
+//group by houseId, householdId
+//;
+
+@Name('TestStream2')
+insert into TestWindow
+//select houseId, sum(plugCount)   
+select houseId, householdId, plugCount
+from HouseholdPlugCount
+group by houseId, householdId
+;
+
+
+//@Name('TestWindow')
+//context SegmentedByHouse
+//create window TestWindow
+//as select * from HouseholdPlugCount;
+
+    //context.id as id
+    //,context.SegmentedByHouse.id as house
+    //,context.SegmentedByHousehold.id as household
+    //,context.SegmentedByPlug.id as plug     
+//.std:unique(householdId)
+//output last every 10 events
+;
+
+
+
+
+//                + "distinct "
+//                + "*, "
+//                + "id, "
+//                + "timestamp, "
+//                + "value "                            
+//                + "median(value), "
+//                + "median(cast(value, Double)) as mcastValue "
+//                + "median(value.doubleValue()) as mdoubleValue "
+//                + "property, "
+//                + "plugId, "
+//                + "householdId, "           
+//                + "houseId, "                                    
+//                + "count(distinct houseId) as cnt "
+//                + "max(houseId) as max "            
+//                context.key1 as houseId,
+//                count(*) as cnt
+//                + "size "
+//                + "median(value) as median "                
+//            from
+//                SensorEvent
+//                + "SensorEvent(property = true)"
+//                + "LastHourWindow "
+//                + "LoadSensorStream"
+//                + ".win:time(10 min) "
+//                + ".win:time(1 min) "
+//                + ".std:lastevent() "
+//              .std:groupwin(plugId, householdId, houseId).std:unique(houseId)                
+//                + ".std:unique(houseId, householdId, plugId) " 
+//                + ".std:size(houseId) "  
+//                + ".std:size(plugId, householdId, houseId) "                
+//                + ".win:expr_batch(newest_event.timestamp != oldest_event.timestamp, false) "
+//        + "group by "
+//                + "plugId "
+//        + "output "                 //  remove from statement (will calculate median only at output time)   
+//                + "after "
+//                + "first "            
+//                + "last "
+//                + "snapshot "
+//                + "every "
+//                + "1  "
+//                + "5  "
+//                + "10 "
+//                + "60 "                                
+//                + "seconds "
+//                + "minutes "
+//                + "hours " 
+//          + "having houseId > max "
+//        + "order by "
+//                + "context.key1 "
+//                + "asc "
+//                + "householdId "
+//                + "asc, "
+//                + "plugId "
+//                + "asc "
+//                + "desc "
+//        ;

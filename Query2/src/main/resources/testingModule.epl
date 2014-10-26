@@ -1,0 +1,52 @@
+module testingModule;
+
+import cz.muni.fi.sbapr.debs2014.annotation.*;
+import cz.muni.fi.sbapr.debs2014.event.*;
+import cz.muni.fi.sbapr.debs2014.subscriber.*;
+import cz.muni.fi.sbapr.debs2014.listener.*;
+
+@Name('SegmentedByHouse')
+create context SegmentedByHouse partition by houseId from SensorEvent;
+
+@Name('SegmentedByHousehold')
+create context SegmentedByHousehold partition by houseId and householdId from SensorEvent;
+
+@Name('SegmentedByPlug')
+create context SegmentedByPlug partition by houseId and householdId and plugId from SensorEvent;
+
+@Name('NestedContext')
+create context NestedContext
+    context SegmentedByHouse partition by houseId from SensorEvent,
+    context SegmentedByHousehold partition by householdId from SensorEvent,
+    context SegmentedByPlug partition by plugId from SensorEvent;
+
+@Name('RuntimeReportingStatement')
+select current_timestamp() as runtime
+from pattern [every timer:interval(1 sec)];
+
+@Name('SensorEventReportingStatement')
+select * from SensorEvent;
+
+
+
+@Name('TestWindow')
+create window 
+    TestWindow.win:length(5)
+as select * from SensorEvent;
+
+@Name('TestWindow-populate')
+insert into TestWindow select * from SensorEvent;
+
+@Name('TestWindowStatement')
+select houseId, count(distinct plugId)
+from TestWindow
+group by houseId, householdId
+//output snapshot every 10 events
+;
+
+//.win:length(5)
+//.std:groupwin(plugId, householdId, houseId).std:unique(houseId)                
+
+
+
+
