@@ -20,6 +20,9 @@ create context NestedContext
     context SegmentedByHousehold partition by householdId from SensorEvent,
     context SegmentedByPlug partition by plugId from SensorEvent;
 
+@Name('ActivePlugCount')
+context SegmentedByHouse create variable integer plugCount = 0;
+
 @Name('RuntimeReportingStatement')
 select current_timestamp() as runtime
 from pattern [every timer:interval(1 sec)];
@@ -27,22 +30,54 @@ from pattern [every timer:interval(1 sec)];
 @Name('SensorEventReportingStatement')
 select * from SensorEvent;
 
+//@Name('TestWindow')
+//context SegmentedByPlug
+//create window 
+//    TestWindow.std:unique(context.id)
+//as select * from SensorEvent;
 
+//@Name('TestWindow-populate')
+//insert into TestWindow select * from SensorEvent;
 
-@Name('TestWindow')
-create window 
-    TestWindow.win:length(5)
-as select * from SensorEvent;
-
-@Name('TestWindow-populate')
-insert into TestWindow select * from SensorEvent;
-
-@Name('TestWindowStatement')
-select houseId, count(distinct plugId)
-from TestWindow
-group by houseId, householdId
+//@Name('TestWindowStatement')
+//select houseId, count(distinct plugId)
+//from TestWindow
+//group by houseId, householdId
 //output snapshot every 10 events
-;
+//;
+
+//@Name('NewPlugStream')
+//context SegmentedByPlug
+//insert into NewPlugStream
+//select * from SensorEvent.std:firstunique(houseId, householdId, plugId);
+
+//@Name('HousePlugCountIncrementStatement')
+//context SegmentedByHouse
+//on NewPlugStream
+//set plugCount = plugCount + 1;
+
+@Name('HousePlugCountIncrementStatement')
+context SegmentedByHouse
+on pattern[every-distinct(e.houseId, e.householdId, e.plugId) e=SensorEvent]
+set plugCount = plugCount + 1;
+
+
+//  select * from pattern[every-distinct(s.device) s=Sensor]
+//  http://esper.codehaus.org/tutorials/solution_patterns/solution_patterns.html
+
+@Name('HousePlugCountStream')
+context SegmentedByHouse
+select houseId, plugCount as activePlugCount 
+//context.key1 as house, context.key2 as household, context.key3 as plug 
+from SensorEvent
+//;
+
+//@Name('TestStatement')
+//context SegmentedByHouse
+//select houseId, plugCount as activePlugCount 
+//context.key1 as house, context.key2 as household, context.key3 as plug 
+//from SensorEvent
+//;
 
 //.win:length(5)
 //.std:groupwin(plugId, householdId, houseId).std:unique(houseId)                

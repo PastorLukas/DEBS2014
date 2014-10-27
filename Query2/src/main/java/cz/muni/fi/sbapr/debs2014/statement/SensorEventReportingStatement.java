@@ -3,7 +3,7 @@ package cz.muni.fi.sbapr.debs2014.statement;
 import cz.muni.fi.sbapr.debs2014.annotation.AnnotationProcessor;
 import com.espertech.esper.client.EPAdministrator;
 import cz.muni.fi.sbapr.debs2014.listener.SensorEventReportingListener;
-import cz.muni.fi.sbapr.debs2014.subscriber.SensorEventSubscriber;
+import cz.muni.fi.sbapr.debs2014.subscriber.SensorEventReportingSubscriber;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -20,7 +20,7 @@ public class SensorEventReportingStatement extends AnnotationProcessor {
     private static final String listenerName = 
             SensorEventReportingListener.class.getName();
     private static final String subscriberName =
-            SensorEventSubscriber.class.getName();        
+            SensorEventReportingSubscriber.class.getName();        
     
     private static final String statement 
             = "@Name('" + statementName + "') "

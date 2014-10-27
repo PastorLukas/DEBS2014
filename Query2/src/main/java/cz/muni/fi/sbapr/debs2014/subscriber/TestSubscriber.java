@@ -51,9 +51,9 @@ public class TestSubscriber {
 //            final BigDecimal value,
 //            final double value,
 //            final double castValue,
-//            final double doubleValue
+//            final double doubleValue,
 //            final Boolean property,
-//            final long plugId
+//            final long plugId,
 //            final long householdId,
             final long houseId,
             final long count

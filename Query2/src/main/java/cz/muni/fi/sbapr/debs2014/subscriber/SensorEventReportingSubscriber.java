@@ -10,12 +10,12 @@ import org.slf4j.LoggerFactory;
  *
  * @author Lukáš Pástor
  */
-public class SensorEventSubscriber {
+public class SensorEventReportingSubscriber {
     
     private static final Logger LOG = 
-            LoggerFactory.getLogger(SensorEventSubscriber.class);   
+            LoggerFactory.getLogger(SensorEventReportingSubscriber.class);   
     private static final String className = 
-            SensorEventSubscriber.class.getSimpleName();
+            SensorEventReportingSubscriber.class.getSimpleName();
     private static final String PLAIN_FULL_LOG = 
                 "{{}, {}, {}, {}, {}, {}, {}}";
                 

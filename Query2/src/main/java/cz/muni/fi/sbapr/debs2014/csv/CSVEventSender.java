@@ -34,7 +34,7 @@ public class CSVEventSender {
         EventSender sender = runtime.getEventSender(eventName);               
                                
 //        sender.sendEvent(event);            
-        final File file = new File(PC_E_CSV_DATA + SORTED_1K); 
+        final File file = new File(OVSS_CSV_DATA + SORTED_1K);
         try (final FileReader in = new FileReader(file);
                 final CSVReader reader = new CSVReader(in)) {               
               

@@ -36,7 +36,7 @@ import com.espertech.esper.client.deploy.Module;
 import com.espertech.esper.client.deploy.ParseException;
 import static cz.muni.fi.sbapr.debs2014.annotation.AnnotationProcessor.*;
 import cz.muni.fi.sbapr.debs2014.subscriber.RuntimeReportingSubscriber;
-import cz.muni.fi.sbapr.debs2014.subscriber.SensorEventSubscriber;
+import cz.muni.fi.sbapr.debs2014.subscriber.SensorEventReportingSubscriber;
 import cz.muni.fi.sbapr.debs2014.subscriber.TestSubscriber;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -278,12 +278,11 @@ public class Query2 {
                         
 //        Arrays.asList(resourceName).stream().forEach(resource -> deploy(add(load(resource))));         
         administrator.getStatement("RuntimeReportingStatement").setSubscriber(new RuntimeReportingSubscriber());
-        administrator.getStatement("SensorEventStream").setSubscriber(new SensorEventSubscriber());
-        //administrator.getStatement("TestStream2").setSubscriber(new TestSubscriber()); 
-        administrator.getStatement("TestWindow").setSubscriber(new TestSubscriber()); 
-        
+        administrator.getStatement("SensorEventStream").setSubscriber(new SensorEventReportingSubscriber());
+//        administrator.getStatement("TestStream2").setSubscriber(new TestSubscriber()); 
+//        administrator.getStatement("TestWindow").setSubscriber(new TestSubscriber()); 
 //        administrator.getStatement("LoadStream").setSubscriber(new SensorEventSubscriber());
-        
+        administrator.getStatement("TestStatement").setSubscriber(new TestSubscriber());
         
         CSVEventSender sender = new CSVEventSender();
         sender.startSendingEvents();
@@ -316,13 +315,15 @@ public class Query2 {
         
         
         administrator.getStatement("RuntimeReportingStatement").setSubscriber(new RuntimeReportingSubscriber());        
-//        administrator.getStatement("SensorEventReportingStatement").addListener(new SensorEventReportingListener());        
-        
+        administrator.getStatement("SensorEventReportingStatement").setSubscriber(new SensorEventReportingSubscriber());        
+//        administrator.getStatement("TestStatement").setSubscriber(new TestSubscriber());
+//        administrator.getStatement("NewPlugStream").setSubscriber(new TestSubscriber());
+        administrator.getStatement("HousePlugCountStream").setSubscriber(new TestSubscriber());
         
 //        administrator.getStatement("TestStream2").setSubscriber(new TestSubscriber()); 
 //        administrator.getStatement("TestWindow").setSubscriber(new TestSubscriber());         
-        administrator.getStatement("TestWindowStatement")
-                .setSubscriber(new TestSubscriber());
+//        administrator.getStatement("TestWindowStatement")
+//                .setSubscriber(new TestSubscriber());
 //                .addListener(new TestListener());        
                        
         CSVEventSender sender = new CSVEventSender();
