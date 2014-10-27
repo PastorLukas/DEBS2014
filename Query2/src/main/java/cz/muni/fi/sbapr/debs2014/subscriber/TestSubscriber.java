@@ -55,10 +55,13 @@ public class TestSubscriber {
 //            final Boolean property,
 //            final long plugId,
 //            final long householdId,
-            final long houseId,
-            final long count
+//            final long houseId,
+//            final long count
 //            final long size                
 //            final double median                            
+              final double avg,
+              final long ts_start,
+              final long ts_stop
         ) 
     {       
 
@@ -80,13 +83,16 @@ public class TestSubscriber {
 //            + "{} == {} == {} "
 //
 //            + "property, : {} "
-            + "houseId {} "
+//            + "houseId {} "
 //            + "householdId {} "
 //            + "plugId : {} "
-            + "count : {} "
+//            + "count : {} "
 //            + "size : {} "
 //            + "median : {} "
 //            + "livePlugs : {} "
+            + "avg : {} "
+            + "ts_start : {} "
+            + "ts_stop : {} "
 //                    
               ,     
                     
@@ -97,12 +103,15 @@ public class TestSubscriber {
 //                castValue,
 //                doubleValue
 //                property,
-                houseId,
+//                houseId,
 //                householdId,
 //                plugId
-                count
+//                count
 //                size
-//                median                  
+//                median
+                avg,
+                ts_start,
+                ts_stop
             );                   
     }        
 }

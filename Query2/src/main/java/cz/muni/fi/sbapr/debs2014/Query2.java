@@ -318,8 +318,10 @@ public class Query2 {
         administrator.getStatement("SensorEventReportingStatement").setSubscriber(new SensorEventReportingSubscriber());        
 //        administrator.getStatement("TestStatement").setSubscriber(new TestSubscriber());
 //        administrator.getStatement("NewPlugStream").setSubscriber(new TestSubscriber());
-        administrator.getStatement("HousePlugCountStream").setSubscriber(new TestSubscriber());
+//        administrator.getStatement("HousePlugCountStream").setSubscriber(new TestSubscriber());
         
+        administrator.getStatement("GlobalLoadAverageStatement").setSubscriber(new TestSubscriber());
+                
 //        administrator.getStatement("TestStream2").setSubscriber(new TestSubscriber()); 
 //        administrator.getStatement("TestWindow").setSubscriber(new TestSubscriber());         
 //        administrator.getStatement("TestWindowStatement")
