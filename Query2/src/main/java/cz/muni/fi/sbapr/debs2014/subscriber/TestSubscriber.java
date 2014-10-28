@@ -53,9 +53,9 @@ public class TestSubscriber {
 //            final double castValue,
 //            final double doubleValue,
 //            final Boolean property,
-//            final long plugId,
-//            final long householdId,
-//            final long houseId,
+            final long plugId,
+            final long householdId,
+            final long houseId,
 //            final long count
 //            final long size                
 //            final double median                            
@@ -83,9 +83,9 @@ public class TestSubscriber {
 //            + "{} == {} == {} "
 //
 //            + "property, : {} "
-//            + "houseId {} "
-//            + "householdId {} "
-//            + "plugId : {} "
+            + "houseId {} "
+            + "householdId {} "
+            + "plugId : {} "
 //            + "count : {} "
 //            + "size : {} "
 //            + "median : {} "
@@ -103,9 +103,9 @@ public class TestSubscriber {
 //                castValue,
 //                doubleValue
 //                property,
-//                houseId,
-//                householdId,
-//                plugId
+                houseId,
+                householdId,
+                plugId,
 //                count
 //                size
 //                median
