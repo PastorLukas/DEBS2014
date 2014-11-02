@@ -3,7 +3,7 @@ package cz.muni.fi.sbapr.debs2014.statement;
 import cz.muni.fi.sbapr.debs2014.annotation.AnnotationProcessor;
 import com.espertech.esper.client.EPAdministrator;
 import cz.muni.fi.sbapr.debs2014.listener.GlobalLoadMedianListener;
-import cz.muni.fi.sbapr.debs2014.subscriber.GlobalLoadMedianSubscriber;
+import cz.muni.fi.sbapr.debs2014.subscriber.GlobalLoadAverageSubscriber;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -20,7 +20,7 @@ public class GlobalLoadMedianStatement extends AnnotationProcessor {
     private static final String listenerName = 
             GlobalLoadMedianListener.class.getName();
     private static final String subscriberName =
-            GlobalLoadMedianSubscriber.class.getName();
+            GlobalLoadAverageSubscriber.class.getName();
     
     private static final String statement 
             = "@Name('" + statementName + "') "

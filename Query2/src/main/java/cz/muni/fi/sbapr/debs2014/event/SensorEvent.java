@@ -28,8 +28,7 @@ public class SensorEvent {
     private boolean property;   //  type of the measurement: 0 for work or 1 for load [boolean]
     private long plugId;        //  a unique identifier (within a household) of the smart plug [32 bit unsigned integer value]
     private long householdId;   //  a unique identifier of a household (within a house) where the plug is located [32 bit unsigned integer value]
-    private long houseId;       //  a unique identifier of a house where the household with the plug is located [32 bit unsigned integer value]   
-        
+    private long houseId;       //  a unique identifier of a house where the household with the plug is located [32 bit unsigned integer value]
         
     public SensorEvent() {
     }

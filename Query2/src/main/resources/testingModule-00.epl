@@ -1,0 +1,180 @@
+module testingModule;
+
+
+import cz.muni.fi.sbapr.debs2014.annotation.*;
+import cz.muni.fi.sbapr.debs2014.event.*;
+import cz.muni.fi.sbapr.debs2014.subscriber.*;
+import cz.muni.fi.sbapr.debs2014.listener.*;
+
+//  select * from SensorEvent.win:time_batch(1 sec)
+
+
+//      Contexts
+    @Name('SegmentedByHouse')
+    create context SegmentedByHouse partition by houseId from SensorEvent;
+
+    @Name('SegmentedByHousehold')
+    create context SegmentedByHousehold partition by houseId and householdId from SensorEvent;
+
+    @Name('SegmentedByPlug')
+    create context SegmentedByPlug partition by houseId and householdId and plugId from SensorEvent;
+
+
+//      Streams
+    @Name('RuntimeStream')
+    select current_timestamp() as runtime
+    from pattern [every timer:interval(1 sec)];
+    
+    @Name('SensorEventStream')
+    select * from SensorEvent;
+    
+    @Name('LoadStream')
+    insert into LoadStream
+    select * from SensorEvent(property = true);
+
+
+//      Windows
+    @Name('HourWindow')
+    create window HourWindow
+    //.win:time(1 min) 
+    .win:length(3)
+    as SensorEvent;
+    insert into HourWindow select * from LoadStream;
+
+    @Name('LoadAverageStream')
+    insert into LoadAverageStream
+    select avg(value) as loadAverage from HourWindow output snapshot;
+
+
+//@Name('LoadAverage')
+//create window WindowLoadAverage.win:length(1) (windowLoadAverage BigDecimal);
+
+//insert into WindowLoadAverage
+//select 
+//    avg(value) as windowLoadAverage 
+//from 
+//    SensorEvent(property = true).win:time(1 min);
+//    HourWindow;
+
+/*
+    select avg(value) as loadAverage from SensorEvent(property = true).win:time(1 min).std:;
+*/
+
+
+
+
+//@Name('ActivePlugCount')
+//context SegmentedByHouse create variable integer plugCount = 0;
+
+//@Name('HousePlugCountIncrementStatement')
+//context SegmentedByHouse
+//on pattern[every-distinct(e.houseId, e.householdId, e.plugId) e=SensorEvent]
+//set plugCount = plugCount + 1;
+
+//@Name('HousePlugCountStream')
+//context SegmentedByHouse
+//select houseId, plugCount as activePlugCount 
+//context.key1 as house, context.key2 as household, context.key3 as plug 
+//from SensorEvent
+//;
+
+
+//  select hist.*, order from OrderEvent order, OrderHistory hist
+//  public void update(OrderHistory orderHistory, OrderEvent orderEvent) {...}
+
+//@Name('GlobalLoadAverageStatement')
+//select
+//    windowLoadAverage
+//from WindowLoadAverage;
+
+//@Name('OverPlugCount')
+//context SegmentedByHouse create variable integer overPlugCount = 0;
+
+//@Name('OverPlugStatement')
+//context SegmentedByPlug
+//select
+//        context.key3 as plug
+//    ,   context.key2 as household
+//    ,   context.key1 as house
+//    ,   avg(value) as windowPlugLoadAverage
+//    ,   windowLoadAverage
+//from
+//        SensorEvent(property = true).win:time(1 min)
+//        HourWindow
+//        HourWindow.std:unique(houseId, householdId, plugId) 
+//    ,   WindowLoadAverage
+//having
+//    avg(value) >
+//    windowLoadAverage
+//        (select 
+//            avg(value) 
+//        from
+            //SensorEvent(property = true).win:time(1 min));
+//            HourWindow);
+//;
+
+//@Name('PlugLoadAverageStatement')
+//context SegmentedByPlug
+//select 
+    //context.key1 as house, 
+    //context.key2 as household, 
+    //context.key3 as plug,
+//    plugId, householdId, houseId,
+//    avg(value.doubleValue()) as plugLoadAverage, 
+//    timestamp as ts_start,
+//    timestamp.minus(1*60) as ts_stop
+//from SensorEvent(property = true).win:time(1 min)
+//group by houseId, householdId, plugId
+//;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+//@Name('TestStatement')
+//context SegmentedByHouse
+//select houseId, plugCount as activePlugCount 
+//context.key1 as house, context.key2 as household, context.key3 as plug 
+//from SensorEvent
+//;
+
+//@Name('TestWindow')
+//context SegmentedByPlug
+//create window 
+//    TestWindow.std:unique(context.id)
+//as select * from SensorEvent;
+
+//@Name('TestWindow-populate')
+//insert into TestWindow select * from SensorEvent;
+
+//@Name('TestWindowStatement')
+//select houseId, count(distinct plugId)
+//from TestWindow
+//group by houseId, householdId
+//output snapshot every 10 events
+//;
+
+//@Name('NewPlugStream')
+//context SegmentedByPlug
+//insert into NewPlugStream
+//select * from SensorEvent.std:firstunique(houseId, householdId, plugId);
+
+//@Name('HousePlugCountIncrementStatement')
+//context SegmentedByHouse
+//on NewPlugStream
+//set plugCount = plugCount + 1;
+
+//.win:length(5)
+//.std:groupwin(plugId, householdId, houseId).std:unique(houseId)                
+
+//  select * from pattern[every-distinct(s.device) s=Sensor]
+//  http://esper.codehaus.org/tutorials/solution_patterns/solution_patterns.html

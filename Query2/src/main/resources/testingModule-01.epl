@@ -1,0 +1,64 @@
+module testingModule;
+
+
+import cz.muni.fi.sbapr.debs2014.annotation.*;
+import cz.muni.fi.sbapr.debs2014.event.*;
+import cz.muni.fi.sbapr.debs2014.subscriber.*;
+import cz.muni.fi.sbapr.debs2014.listener.*;
+
+
+
+
+//      Contexts
+    @Name('SegmentedByHouse')
+    create context SegmentedByHouse partition by houseId from SensorEvent;
+
+    @Name('SegmentedByHousehold')
+    create context SegmentedByHousehold partition by houseId and householdId from SensorEvent;
+
+    @Name('SegmentedByPlug')
+    create context SegmentedByPlug partition by houseId and householdId and plugId from SensorEvent;
+
+
+//      Streams
+    @Name('RuntimeStream')
+    select current_timestamp() as runtime
+    from pattern [every timer:interval(1 sec)];
+    
+    @Name('SensorEventStream')
+    select * from SensorEvent;
+//    select * from SensorEvent(property = true).win:length(5)
+//    output snapshot 
+//    every 5 events
+//    output every 5 events
+    ;
+    
+    @Name('LoadStream')
+    insert into LoadStream
+    select * from SensorEvent(property = true);
+
+//      Windows
+    @Name('HourWindow')
+    create window HourWindow
+    //.win:time(1 min) 
+    .win:length(3)
+    as SensorEvent;
+
+    insert into HourWindow select irstream * from LoadStream;
+
+    
+    @Name('HourWindowStatement')
+    select * from SensorEvent(property = true).win:length(3)
+    output all every 1 events;
+
+    @Name('LoadSumStream')
+    select irstream sum(value) from SensorEvent(property = true).win:length(3)
+    output snapshot
+    //select irstream sum(value) from HourWindow
+    ;
+
+    
+
+
+
+

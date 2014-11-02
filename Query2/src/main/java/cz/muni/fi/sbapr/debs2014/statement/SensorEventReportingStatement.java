@@ -2,8 +2,8 @@ package cz.muni.fi.sbapr.debs2014.statement;
 
 import cz.muni.fi.sbapr.debs2014.annotation.AnnotationProcessor;
 import com.espertech.esper.client.EPAdministrator;
-import cz.muni.fi.sbapr.debs2014.listener.SensorEventReportingListener;
-import cz.muni.fi.sbapr.debs2014.subscriber.SensorEventReportingSubscriber;
+import cz.muni.fi.sbapr.debs2014.listener.SensorEventListener;
+import cz.muni.fi.sbapr.debs2014.subscriber.SensorEventSubscriber;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -18,9 +18,9 @@ public class SensorEventReportingStatement extends AnnotationProcessor {
     private static final String statementName =
             SensorEventReportingStatement.class.getSimpleName();
     private static final String listenerName = 
-            SensorEventReportingListener.class.getName();
+            SensorEventListener.class.getName();
     private static final String subscriberName =
-            SensorEventReportingSubscriber.class.getName();        
+            SensorEventSubscriber.class.getName();        
     
     private static final String statement 
             = "@Name('" + statementName + "') "

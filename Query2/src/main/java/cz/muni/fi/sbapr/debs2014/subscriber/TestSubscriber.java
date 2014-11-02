@@ -46,72 +46,61 @@ public class TestSubscriber {
          
     public void update
         (
-//            final long id,
-//            final long timestamp,
-//            final BigDecimal value,
-//            final double value,
-//            final double castValue,
-//            final double doubleValue,
-//            final Boolean property,
-            final long plugId,
-            final long householdId,
-            final long houseId,
-//            final long count
-//            final long size                
-//            final double median                            
-              final double avg,
-              final long ts_start,
-              final long ts_stop
-        ) 
-    {       
-
+//                final long id
+//            ,   final long timestamp
+//            ,   final BigDecimal value
+//            ,   final Boolean property
+                final long plugId
+            ,   final long householdId
+            ,   final long houseId
+//            ,   final long count
+//            ,   final long size
+//            ,   final double median
+            ,   final BigDecimal plugAvg
+            ,   final BigDecimal windowAvg
+//            ,   final long ts_start
+//            ,   final long ts_stop
+        )
+    {
         LOG.info
-            (
-            "[{}] - "
-//            + "{}, "            
-//            + "{}, "
-//            + "{}, "
-//            + "{}, "
-//            + "{}, "
-//            + "{}, "
-//            + "id : {} "
-//            + "timestamp : {} "                                
-//            + "value : {} "
-//
-//            + "castValue : {} "
-//            + "doubleValue : {} "
-//            + "{} == {} == {} "
-//
-//            + "property, : {} "
-            + "houseId {} "
-            + "householdId {} "
-            + "plugId : {} "
-//            + "count : {} "
-//            + "size : {} "
-//            + "median : {} "
-//            + "livePlugs : {} "
-            + "avg : {} "
-            + "ts_start : {} "
-            + "ts_stop : {} "
-//                    
-              ,     
-                    
-                className,
-//                id,
-//                timestamp,
-//                value,
-//                castValue,
-//                doubleValue
-//                property,
-                houseId,
-                householdId,
-                plugId,
-//                count
-//                size
-//                median
-                avg,
-                ts_start,
-                ts_stop
-            );                   
+        (
+                "[{}] - "
+//            +   "{}, "            
+//            +   "{}, "
+//            +   "{}, "
+//            +   "{}, "
+//            +   "{}, "
+//            +   "{}, "
+//            +   "id : {} "
+//            +   "timestamp : {} "                                
+//            +   "value : {} "              
+//            +   "property, : {} "
+            +   "houseId {} "
+            +   "householdId {} "
+            +   "plugId : {} "
+//            +   "count : {} "
+//            +   "size : {} "
+//            +   "median : {} "
+//            +   "livePlugs : {} "
+//            +   "avg : {} "
+            +   "plug-avg : {} "
+            +   "win-avg : {} "
+//            +   "ts_stop : {} "                         
+            ,   className
+//            ,   id
+//            ,   timestamp
+//            ,   value
+//            ,   property
+            ,   houseId
+            ,   householdId
+            ,   plugId
+//            ,   count
+//            ,   size
+//            ,   median
+            ,   plugAvg.doubleValue()
+            ,   windowAvg.doubleValue()
+//            ,   ts_start
+//            ,   ts_stop
+        );                   
     }        
 }
