@@ -32,7 +32,15 @@ public class SensorEvent {
         
     public SensorEvent() {
     }
-            
+
+    public SensorEvent(long id) {
+        this.id = id;
+    }
+
+    public SensorEvent(SensorEvent other) {
+        this(other.getId(), other.getTimestamp(), other.getValue(), other.getProperty(), other.getPlugId(), other.getHouseholdId(), other.getHouseId());                
+    }
+                   
     public SensorEvent(long id, long timestamp, BigDecimal value, boolean property, long plugId, long householdId, long houseId) {
         this.id = id;
         this.timestamp = timestamp;

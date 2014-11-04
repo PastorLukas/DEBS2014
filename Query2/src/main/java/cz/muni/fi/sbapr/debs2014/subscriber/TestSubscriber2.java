@@ -10,11 +10,11 @@ import org.slf4j.LoggerFactory;
  *
  * @author Lukáš Pástor
  */
-public class TestSubscriber {
+public class TestSubscriber2 {
     private static final Logger LOG = 
-            LoggerFactory.getLogger(TestSubscriber.class);
+            LoggerFactory.getLogger(TestSubscriber2.class);
     private static final String className = 
-            TestSubscriber.class.getSimpleName();
+            TestSubscriber2.class.getSimpleName();
     
 //    public void update(final SensorEvent[] newEvents) {        
 //        LOG.info("[{}] - Update multiple", className);
@@ -57,7 +57,7 @@ public class TestSubscriber {
 //            ,   final long size
 //            ,   final double median
             ,   final BigDecimal plugAvg
-            ,   final BigDecimal windowAvg
+//            ,   final BigDecimal windowAvg
 //            ,   final long ts_start
 //            ,   final long ts_stop
         )
@@ -85,7 +85,7 @@ public class TestSubscriber {
 //            +   "livePlugs : {} "
 //            +   "avg : {} "
             +   "win-avg : {} "
-            +   "plug-avg : {} "
+//            +   "plug-avg : {} "
 //            +   "ts_stop : {} "                         
             ,   className
 //            ,   id
@@ -98,7 +98,7 @@ public class TestSubscriber {
 //            ,   count
 //            ,   size
 //            ,   median
-            ,   windowAvg.doubleValue()
+//            ,   windowAvg.doubleValue()
             ,   plugAvg.doubleValue()
 //            ,   ts_start
 //            ,   ts_stop

@@ -45,10 +45,11 @@ public class CSVEventSender {
             while ((event = reader.getSensorEvent()) != null) {                              
                 eventTime = MILLISECONDS.convert(event.getTimestamp(), SECONDS);
                 try {                
-                    Thread.sleep(500L);
+                    Thread.sleep(200L);
                 } catch (InterruptedException ex) {
                     
                 }
+                
                 if (runtime.getCurrentTime() != eventTime) {
                     runtime.sendEvent(new CurrentTimeEvent(eventTime));
 //                    log.info("runtime : {}", runtime.getCurrentTime());  
@@ -58,6 +59,7 @@ public class CSVEventSender {
                 sender.sendEvent(event);
                 //log.info("timestamp : {}", MILLISECONDS.convert(event.getTimestamp(), SECONDS));                  
                 totalEventCount++;
+                event = null;
             }    
             LOG.info("event count : {}", totalEventCount); 
             LOG.info("evaluated : {}", runtime.getNumEventsEvaluated()); 

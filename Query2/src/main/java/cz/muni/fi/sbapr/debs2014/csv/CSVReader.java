@@ -22,7 +22,6 @@ public class CSVReader implements Closeable {
         
     private BufferedLineReader reader = null;
     private CharBuffer lineBuffer = null;
-    SensorEvent event = null;    
     private char delimiter;
           
     public CSVReader(Reader in) throws IOException {
@@ -42,10 +41,9 @@ public class CSVReader implements Closeable {
             throw new IllegalArgumentException("Line buffer size <= 0");    
         
         reader = new BufferedLineReader(in);
-        lineBuffer = CharBuffer.allocate(lineBufferLength);  
-        event = new SensorEvent(); 
-        delimiter = delim;    
-    }    
+        lineBuffer = CharBuffer.allocate(lineBufferLength); 
+        delimiter = delim;
+    }
     
     @Override
     public void close() throws IOException {        
@@ -62,16 +60,17 @@ public class CSVReader implements Closeable {
         return false;
     }
      
-    public SensorEvent getSensorEvent() {        
+    public SensorEvent getSensorEvent() { 
+        SensorEvent event = new SensorEvent();
+        
         if (!hasNextLine()) {
             return null;
         }
         
         char[] line = lineBuffer.array();
         int start = 0;
-        int end = 0;     
-                
-
+        int end = 0;
+        
         //  id                
         if ((end = indexOf(line, delimiter, start)) == -1) {
             LOG.info("ERROR PARSING ID");

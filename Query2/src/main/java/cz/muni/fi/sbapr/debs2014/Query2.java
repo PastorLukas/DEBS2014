@@ -35,11 +35,11 @@ import org.slf4j.LoggerFactory;
 import com.espertech.esper.client.deploy.Module;
 import com.espertech.esper.client.deploy.ParseException;
 import static cz.muni.fi.sbapr.debs2014.annotation.AnnotationProcessor.*;
-import cz.muni.fi.sbapr.debs2014.listener.SensorEventListener;
 import cz.muni.fi.sbapr.debs2014.subscriber.GlobalLoadAverageSubscriber;
 import cz.muni.fi.sbapr.debs2014.subscriber.RuntimeReportingSubscriber;
 import cz.muni.fi.sbapr.debs2014.subscriber.SensorEventSubscriber;
 import cz.muni.fi.sbapr.debs2014.subscriber.TestSubscriber;
+import cz.muni.fi.sbapr.debs2014.subscriber.TestSubscriber2;
 import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -366,16 +366,25 @@ public class Query2 {
         EPDeploymentAdmin deploymentAdministrator = administrator.getDeploymentAdmin();
                                           
         final String[] resourceName = new String[] {"/testingModule-01.epl"};                                 
-        Arrays.asList(resourceName).stream().forEach(resource -> deploy(add(load(resource))));                               
+        Arrays.asList(resourceName).stream().forEach(resource -> deploy(add(load(resource))));      
         
+        administrator.getStatement("RuntimeStream").setSubscriber(new RuntimeReportingSubscriber());
+//        administrator.getStatement("RuntimeStream").addListener(new RuntimeReportingListener());        
         
-        administrator.getStatement("RuntimeStream").setSubscriber(new RuntimeReportingSubscriber());        
-//        administrator.getStatement("SensorEventStream").setSubscriber(new SensorEventSubscriber());
+//        administrator.getStatement("SensorEventStream").setSubscriber(new SensorEventSubscriber());        
 //        administrator.getStatement("SensorEventStream").addListener(new SensorEventListener());               
+        
         administrator.getStatement("LoadStream").setSubscriber(new SensorEventSubscriber()); 
+//        administrator.getStatement("LoadStream").addListener(new SensorEventListener()); 
+                
+//        administrator.getStatement("LoadAverageStream").setSubscriber(new TestSubscriber1());
+        
+        administrator.getStatement("PlugAverageStatement").setSubscriber(new TestSubscriber2());
+//        administrator.getStatement("OverPlugStatement").setSubscriber(new TestSubscriber2());        
+            
         
 //        administrator.getStatement("HourWindowStatement").addListener(new SensorEventListener());    
-//        administrator.getStatement("LoadSumStream").setSubscriber(new GlobalLoadAverageSubscriber());        
+//        administrator.getStatement("LoadSumStream").setSubscriber(new GlobalLoadAverageSubscriber());                      
         
 //        administrator.getStatement("LoadAverageStream").setSubscriber(new GlobalLoadAverageSubscriber());
 //        administrator.getStatement("OverPlugStatement").setSubscriber(new TestSubscriber());        
@@ -396,7 +405,7 @@ public class Query2 {
                        
         CSVEventSender sender = new CSVEventSender();
         sender.startSendingEvents();        
-    }
+    }        
           
     private void processAnotations(EPAdministrator administrator) {
     
@@ -613,7 +622,7 @@ public class Query2 {
                 
         Query2 q = new Query2();
 //        q.testingModule(); 
-        q.testingModule1();
+        q.testingModule1();   
 //        q.quary2();
         
 //        Query2.start();

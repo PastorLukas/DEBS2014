@@ -27,11 +27,6 @@ import cz.muni.fi.sbapr.debs2014.listener.*;
     
     @Name('SensorEventStream')
     select * from SensorEvent;
-//    select * from SensorEvent(property = true).win:length(5)
-//    output snapshot 
-//    every 5 events
-//    output every 5 events
-    ;
     
     @Name('LoadStream')
     insert into LoadStream
@@ -39,26 +34,69 @@ import cz.muni.fi.sbapr.debs2014.listener.*;
 
 //      Windows
     @Name('HourWindow')
-    create window HourWindow
-    //.win:time(1 min) 
-    .win:length(3)
-    as SensorEvent;
-
-    insert into HourWindow select irstream * from LoadStream;
-
-    
-    @Name('HourWindowStatement')
-    select * from SensorEvent(property = true).win:length(3)
-    output all every 1 events;
-
-    @Name('LoadSumStream')
-    select irstream sum(value) from SensorEvent(property = true).win:length(3)
-    output snapshot
-    //select irstream sum(value) from HourWindow
+    create window HourWindow.win:time(1 min) as SensorEvent;   
+    insert into HourWindow select * from LoadStream;
+      
+    @Name('LoadAverageStream')
+    insert into LoadAverageStream (loadAverage)
+    select avg(value) as loadAverage from HourWindow
     ;
 
-    
+    //  - into the stream and than the last part having avg(value) > loadAverage
 
+    //      Solution #1.0 (segmented, with having clause)
+    //      -   segmented -> must use SensorEvent
+    //      -   cannot use having clause with loadAverage    
+    @Name('OverPlugStatement-NOTACTIVE1.0')
+    context SegmentedByPlug
+    select
+        context.key3 as plug
+    ,   context.key2 as household
+    ,   context.key1 as house
+    ,   avg(value) as plugLoadAverage
+    ,   loadAverage
+    from        
+        SensorEvent(property = true).win:time(1 min)
+    ,   LoadAverageStream.std:lastevent()
+    having 
+        avg(value) > loadAverage
+    ;
 
+    //      Solution #1.1 (segmented, with having clause)
+    //      -   segmented -> must use SensorEvent           
+    @Name('PlugAverageStatement-NOTACTIVE1.1')
+    context SegmentedByPlug
+    select
+        context.key3 as plug
+    ,   context.key2 as household
+    ,   context.key1 as house   
+    ,   avg(value) as plugLoadAverage
+    from        
+        SensorEvent(property = true).win:time(1 min)
+        .std:unique(houseId, householdId, plugId) as Wind
+    ,   LoadAverageStream.std:lastevent()    
+    having 
+        avg(value) > loadAverage
+    output 
+        snapshot every 1 events
+    ;
 
-
+    //      Solution #2.0 (non-segmented, cannot have having clause)
+    //      -   non-segmented -> dont have to use SensorEvent
+    //      -   group by restricts select, having clause
+    @Name('PlugAverageStatement')
+    select
+        plugId as plug
+    ,   householdId as household
+    ,   houseId as house
+    ,   avg(value) as plugLoadAverage
+    from        
+        SensorEvent(property = true).win:time(1 min)
+        .std:unique(houseId, householdId, plugId) as Wind    
+    group by
+        plugId
+    ,   householdId
+    ,   houseId    
+    output 
+        snapshot every 1 events
+    ;   
