@@ -20,7 +20,7 @@ import cz.muni.fi.sbapr.debs2014.listener.*;
     create context SegmentedByPlug partition by houseId and householdId and plugId from SensorEvent;
 
 
-//      Streams
+//      Streams    
     @Name('RuntimeStream')
     select current_timestamp() as runtime
     from pattern [every timer:interval(1 sec)];
@@ -32,21 +32,27 @@ import cz.muni.fi.sbapr.debs2014.listener.*;
     insert into LoadStream
     select * from SensorEvent(property = true);
 
+
 //      Windows
     @Name('HourWindow')
-    create window HourWindow.win:time(1 min) as SensorEvent;   
+    create window HourWindow.win:time(1 min) as SensorEvent;
     insert into HourWindow select * from LoadStream;
       
     @Name('LoadAverageStream')
     insert into LoadAverageStream (loadAverage)
     select avg(value) as loadAverage from HourWindow
-    ;
+    ;  
+
+
+
 
     //  - into the stream and than the last part having avg(value) > loadAverage
 
     //      Solution #1.0 (segmented, with having clause)
     //      -   segmented -> must use SensorEvent
-    //      -   cannot use having clause with loadAverage    
+    //      -   cannot use having clause with loadAverage      
+    //  Input   : SensorEvent event
+    //  Output 	: Load median for coresponding plug in respect to TimeWindow
     @Name('OverPlugStatement-NOTACTIVE1.0')
     context SegmentedByPlug
     select
@@ -89,10 +95,11 @@ import cz.muni.fi.sbapr.debs2014.listener.*;
         plugId as plug
     ,   householdId as household
     ,   houseId as house
-    ,   avg(value) as plugLoadAverage
-    from        
-        SensorEvent(property = true).win:time(1 min)
-        .std:unique(houseId, householdId, plugId) as Wind    
+    ,   median(value) as plugLoadAverage
+    from  
+        HourWindow
+        //SensorEvent(property = true).win:time(1 min)
+        //.std:unique(houseId, householdId, plugId) as Wind    
     group by
         plugId
     ,   householdId

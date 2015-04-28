@@ -6,11 +6,13 @@ package cz.muni.fi.sbapr.debs2014.csv;
  */
 public class CSVInput {
     
-    public static final String PC_E_CSV_DATA = "E:\\SBAPR\\Data\\";
+    public static final String PC_L_CSV_DATA = "L:\\SBAPR\\Data\\";
     public static final String PC_D_CSV_DATA = "D:\\SBAPR\\Data\\";
     public static final String HP_D_CSV_DATA = "D:\\SBAPR\\Data\\"; 
     public static final String OVSS_CSV_DATA = "C:\\Users\\pastor\\Documents\\NetBeansProjects\\Data\\";
-            
+           
+    public static final String SORTED_TEST = "sorted-test.csv";
+    public static final String SORTED_TEST2 = "sorted-test2.csv";
     public static final String SORTED      = "sorted.csv";    
     public static final String SORTED_1B   = "sorted-1B.csv";
     public static final String SORTED_100M = "sorted-100M.csv";

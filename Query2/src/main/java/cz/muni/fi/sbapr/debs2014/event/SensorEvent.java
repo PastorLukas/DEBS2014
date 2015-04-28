@@ -21,6 +21,18 @@ import java.math.BigDecimal;
  * @author Lukáš Pástor
  */
 public class SensorEvent {                              
+    
+    private static StringBuilder sb = new StringBuilder(80);
+    
+    //  Event property mapping
+    public static final int ID = 0;
+    public static final int TIMESTAMP = 1;
+    public static final int VALUE = 2;
+    public static final int PROPERTY = 3;
+    public static final int PLUGID = 4;
+    public static final int HOUSEHOLDID = 5;
+    public static final int HOUSEID = 6;
+    
                                 //  The schema of the base stream   :
     private long id;            //  a unique identifier of the measurement [32 bit unsigned integer value]
     private long timestamp;     //  timestamp of measurement (epoch) [32 bit unsigned integer value]
@@ -29,7 +41,7 @@ public class SensorEvent {
     private long plugId;        //  a unique identifier (within a household) of the smart plug [32 bit unsigned integer value]
     private long householdId;   //  a unique identifier of a household (within a house) where the plug is located [32 bit unsigned integer value]
     private long houseId;       //  a unique identifier of a house where the household with the plug is located [32 bit unsigned integer value]
-        
+            
     public SensorEvent() {
     }
 
@@ -107,8 +119,46 @@ public class SensorEvent {
         this.houseId = houseId;
     }      
 
+    /*
     @Override
-    public String toString() {               
+    public String toString() {              
         return "SensorEvent{" + "id=" + id + ", timestamp=" + timestamp + ", value=" + value + ", property=" + property + ", plugId=" + plugId + ", householdId=" + householdId + ", houseId=" + houseId + '}';
     }
+    */
+    
+    public String toStringPlain() {
+        
+        sb.setLength(0);
+        sb.append("{").append(getId());
+        sb.append(", ").append(getTimestamp());
+        sb.append(", ").append(getValue());
+        sb.append(", ").append(getProperty());
+        sb.append(", ").append(getPlugId());
+        sb.append(", ").append(getHouseholdId());
+        sb.append(", ").append(getHouseId());
+        sb.append("}");
+        return sb.toString();
+    }       
+    
+    public String toStringFormat() {                                
+        return String.format("%2d, %d, %6.3f, %b, %2d, %2d, %2d",
+            getId(),
+            getTimestamp(),
+            getValue(), 
+            getProperty(),            
+            getPlugId(), 
+            getHouseholdId(),
+            getHouseId());                            
+    }
+    
+    public static String log(Object[] event) {
+        return String.format("%2d, %d, %6.3f, %b, %2d, %2d, %2d",
+            (long) event[0],
+            (long) event[1],
+            (BigDecimal) event[2], 
+            (boolean) event[3],
+            (long) event[4], 
+            (long) event[5], 
+            (long) event[6]);                            
+    }          
 }

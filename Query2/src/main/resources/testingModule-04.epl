@@ -1,0 +1,194 @@
+// Declare the name for the module ex. org.myorganization.switchmonitor
+module testingModule04;
+
+// Declare other module(s) that this module depends on
+//uses org.myorganization.common;
+
+// Import any Java/.NET classes in an application package
+//import org.myorganization.events.*;
+
+
+import cz.muni.fi.sbapr.debs2014.annotation.*;
+import cz.muni.fi.sbapr.debs2014.event.*;
+import cz.muni.fi.sbapr.debs2014.subscriber.*;
+import cz.muni.fi.sbapr.debs2014.listener.*;
+    
+
+    @Name('Sensor-Event-Type')
+    @Description('The schema of the base stream.')
+    //@EventRepresentation(array=true)
+    create schema SensorEventType
+    as (                    
+        id long             //  a unique identifier of the measurement [32 bit unsigned integer value]
+    ,   timestamp long      //  timestamp of measurement (epoch) [32 bit unsigned integer value]
+    ,   value BigDecimal    //  the measurement [32 bit floating point]
+    ,   property boolean    //  type of the measurement: 0 for work or 1 for load [boolean]
+    ,   plugId long         //  a unique identifier (within a household) of the smart plug [32 bit unsigned integer value]
+    ,   householdId long    //  a unique identifier of a household (within a house) where the plug is located [32 bit unsigned integer value]
+    ,   houseId long        //  a unique identifier of a house where the household with the plug is located [32 bit unsigned integer value]
+    );
+
+    @Name('Plug-Aggregation-Event-Type') // LoadEvents1Hour
+    @Description('Schema for per plug aggregation.')
+    //@EventRepresentation(array=true)
+    create schema PlugAggregationEventType
+    as (
+        id long
+    ,   timestamp long
+    ,   plugId long
+    ,   householdId long
+    ,   houseId long
+    ,   value BigDecimal
+    );
+
+    @Name('Plug-Aggregation')
+    @Description('Schema for per plug aggregation.')    
+    create schema PlugAggregation
+    as (
+        id long
+    ,   timestamp long
+    ,   plugId long
+    ,   householdId long
+    ,   houseId long
+    ,   value BigDecimal
+    );
+
+
+
+
+    //  Contexts
+    @Name('Segmented-By-House')
+    @Description('Context per each unique house.')
+        create context SegmentedByHouse 
+        partition by houseId 
+        from SensorEventType;
+
+    @Name('Segmented-By-Household')
+    @Description('Context per each unique household.')
+        create context SegmentedByHousehold
+        partition by houseId and householdId 
+        from SensorEventType;
+
+    @Name('Segmented-By-Plug')
+    @Description('Context per each unique plug.')
+        create context SegmentedByPlug
+        partition by houseId and householdId and plugId 
+        from SensorEventType;
+                      
+
+
+    //      Streams    
+    @Name('Runtime-Stream')
+    @Description('Retains all load events at most 1h/24h old.')
+        select current_timestamp() as runtime
+        from pattern [every timer:interval(1 sec)]
+        ;
+    
+    @Name('Sensor-Event-Stream')  
+    @Description('Emit all input events.')
+        insert into SensorEventStream
+        select istream * from SensorEventType
+        ;
+    
+    @Name('Load-Event-Stream')
+    @Description('Emits only events monitoring load measurements.')
+        insert into LoadSensorEvent(id, timestamp, load, plug, household, house)
+        select id, timestamp, value, plugId, householdId, houseId 
+        from SensorEventType(property = true)
+        ;
+
+
+
+
+    //      Time-Windows
+    @Name('Time-Window-Create')    
+    @Description('Retains all load events at most 1h/24h old.')
+        create window TimeWindow.win:length(5) as SensorEventType;
+
+    @Name('Time-Window-Populate')    
+    @Description('Inserts load events.')
+        insert istream into TimeWindow
+        select * from SensorEventType;
+        
+    @Name('Time-Window-PrintOnInsert')
+    @Description('Prints snaphshot of TimeWindow.')
+        select irstream * from TimeWindow
+        output snapshot every 1 events
+        order by id desc;
+
+
+        @Name('Time-Window-InsertStream')
+            insert into TimeWindowInputStream
+            select istream * from TimeWindow;
+
+        @Name('Time-Window-RemoveStream')
+            insert into TimeWindowRemoveStream
+            select rstream * from TimeWindow;
+
+        @Name('Time-Window-IRStream')
+            insert into TimeWindowIRStream
+            select irstream * from TimeWindow;
+
+
+    // irstream + id - output snapshot
+    // istream  - id - output snapshot
+    //
+    //                   
+    @Name('Test-Agregation')
+    insert into TestAggregationStream
+    select istream
+    //    id         
+        plugId
+    ,   householdId
+    ,   houseId
+    ,   count(*) as count
+    //,   sum(value) as sum
+    //,   avg(value) as average
+    ,   median(value) as median
+    from
+        TimeWindow         
+    group by
+            plugId
+        ,   householdId
+        ,   houseId
+    having count(value) != 0
+    //output snapshot every 1 events  //  try with/without it    
+    ;
+
+    @Name('Plug-Average-Window-Populate-I')
+    @Description('Inserts aggregation events.')
+    select istream * from TestAggregationStream
+    ;
+
+    @Name('Plug-Average-Window-Populate-R')
+    @Description('Inserts aggregation events.')
+    select rstream * from TestAggregationStream
+    ;
+
+
+
+    @Name('Plug-Average-Window-Create')
+    @Description('Retains aggregations per unique plug.')
+        create window PlugAverageWindow
+                .win:length(5)
+                //.win:time(1 min)
+                .std:unique(houseId, householdId, plugId)
+                //.std:unique(houseId, householdId, plugId)
+        as TestAggregationStream;
+
+    @Name('Plug-Average-Window-Populate')
+    @Description('Inserts aggregation events.')
+        insert into PlugAverageWindow
+        select * from TestAggregationStream
+        //where count != 0
+        //where median is not null
+        ;
+
+ 
+    @Name('Plug-Average-Window-PrintOnInsert')
+    @Description('Prints snaphshot of PlugAverageWindow.')
+        select istream * from PlugAverageWindow
+        output snapshot every 1 events
+        //order by id desc
+        ;
+    

@@ -1,6 +1,7 @@
 package cz.muni.fi.sbapr.debs2014.subscriber;
 
 import cz.muni.fi.sbapr.debs2014.event.SensorEvent;
+import cz.muni.fi.sbapr.debs2014.util.Formatter;
 import java.math.BigDecimal;
 import java.util.Arrays;
 import java.util.Map;
@@ -8,21 +9,25 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Row-by-row update method preference : 
- * 1. EventType
- * 2. Map/EventType multi-row
+ * Row-by-row update method preference : 1. EventType 2. Map/EventType multi-row
  * 3. Object[]
- * 
+ *
  * @author Lukáš Pástor
  */
-public class SensorEventSubscriber {
+public class TimeWindow {
+
+    private static final Logger LOG
+            = LoggerFactory.getLogger(TimeWindow.class);
+    private static final String className
+            = TimeWindow.class.getSimpleName();
+    private final String label;
+    private final String formatedLabel;
     
-    private static final Logger LOG = 
-            LoggerFactory.getLogger(SensorEventSubscriber.class);   
-    private static final String className = 
-            SensorEventSubscriber.class.getSimpleName();      
-    
-                    
+    public TimeWindow(String label) {
+        this.label = label;
+        this.formatedLabel = Formatter.alignToCenter(label, 50, '-');    
+    }
+                
     /**
      * Called by the engine before delivering events to update methods
      *
@@ -31,25 +36,21 @@ public class SensorEventSubscriber {
      * @param removeStreamLength the number of events of the remove stream to be
      * delivered
      */
-    private 
-//    public
-        void updateStart(int insertStreamLength, int removeStreamLength) {
-//        LOG.trace("updateStart i : {}, r : {}", insertStreamLength, removeStreamLength);
-//        System.out.println("A");
+    private void updateStart(int insertStreamLength, int removeStreamLength) {
+        LOG.trace(formatedLabel);        
+        //LOG.trace("updateStart i : {}, r : {}", insertStreamLength, removeStreamLength);
     }
     
     /**
      * Called by the engine after delivering events
      */
-    private 
-//    public 
-        void updateEnd() {
-//        LOG.trace("updateEmd");
-//        System.out.println("B\n");
+    private void updateEnd() {
+        LOG.trace(formatedLabel);
+        //LOG.trace("updateEmd");
     }
     
-    
-    // Row-by-row Delivery :               
+        
+// Row-by-row Delivery :               
     /**
      * The update method to support input stream delivery of explicit select
      * clause representing all properties of SensorEvents in row-by-row delivery
@@ -151,9 +152,8 @@ public class SensorEventSubscriber {
      *
      * @param event columns in the select clause
      */
-    private void update(final Object[] event) {
-        System.out.println("");
-        //LOG.info(".I(O[]) - {}", event);
+    private void update(final Object[] event) {              
+        LOG.info(".I(O[]) - {}", event);
 //        if (event != null && event.length > 0) {
 //            LOG.info(".update(O[]) - {}", Arrays.toString(event));
 //        }
@@ -169,13 +169,12 @@ public class SensorEventSubscriber {
      * @param event remove stream events
      */
     public void updateRStream(final Object[] event) {        
-        LOG.info(".R(O[]) - {}", event); 
-    //LOG.info(".R(O[]) - {}", Arrays.toString(event));        
+        LOG.info(".R(O[]) - {}", event);        
 //        if (event != null && event.length > 0) {
 //            LOG.info(".updateRStream(O[]) - {}", event);
 //        }
     }
-    
+
     
     
     /**
@@ -215,7 +214,7 @@ public class SensorEventSubscriber {
      */
     public void update(final SensorEvent[] newEvents, final SensorEvent[] oldEvents) {
 
-        //LOG.trace(formatedLabel);
+        LOG.trace(formatedLabel);
         if (newEvents != null && newEvents.length > 0) {
             for (SensorEvent newEvent : newEvents) {
                 update(newEvent);                
@@ -238,7 +237,7 @@ public class SensorEventSubscriber {
      * @param removeStream array of output stream SensorEvent events
      */
     public void update(final Object[][] insertStream, final Object[][] removeStream) {             
-        //LOG.trace(formatedLabel);        
+        LOG.trace(formatedLabel);        
         if (insertStream != null && insertStream.length > 0) {                      
             for (Object[] newEvent : insertStream) {   
                 update(newEvent);                                
@@ -251,4 +250,5 @@ public class SensorEventSubscriber {
             }
         }
     }        
+    
 }

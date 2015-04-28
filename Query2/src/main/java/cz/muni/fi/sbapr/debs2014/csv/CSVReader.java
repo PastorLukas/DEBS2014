@@ -17,7 +17,7 @@ import org.slf4j.LoggerFactory;
 public class CSVReader implements Closeable {
 
     private static final Logger LOG = LoggerFactory.getLogger(CSVReader.class);
-    private static final char DEFAULT_DELIMITER = ',';    
+    private static final char DEFAULT_DELIMITER = ',';
     private static final int DEFAULT_LINE_LENGTH = 80;
         
     private BufferedLineReader reader = null;
@@ -41,7 +41,7 @@ public class CSVReader implements Closeable {
             throw new IllegalArgumentException("Line buffer size <= 0");    
         
         reader = new BufferedLineReader(in);
-        lineBuffer = CharBuffer.allocate(lineBufferLength); 
+        lineBuffer = CharBuffer.allocate(lineBufferLength);
         delimiter = delim;
     }
     
@@ -69,7 +69,7 @@ public class CSVReader implements Closeable {
         
         char[] line = lineBuffer.array();
         int start = 0;
-        int end = 0;
+        int end = 0;        
         
         //  id                
         if ((end = indexOf(line, delimiter, start)) == -1) {
@@ -125,6 +125,85 @@ public class CSVReader implements Closeable {
         return event;
     }       
     
+    public Object[] getSensorEventAsArray() {
+        Object[] event = new Object[7];
+        
+        if (!hasNextLine()) {
+            return null;
+        }
+        
+        char[] line = lineBuffer.array();
+        int start = 0;
+        int end = 0;
+        
+        
+        //  id                
+        if ((end = indexOf(line, delimiter, start)) == -1) {
+            LOG.info("ERROR PARSING ID");
+            return null;
+        }        
+        //event.setId(parseLong(line, start, end - start));
+        event[0] = parseLong(line, start, end - start); 
+        
+        
+        //  timestamp
+        start = end + 1;
+        if ((end = indexOf(line, delimiter, start)) == -1) {
+            LOG.info("ERROR PARSING TIMESTAMP");
+            return null;
+        }
+        //event.setTimestamp(parseLong(line, start, end - start));
+        event[1] = parseLong(line, start, end - start); 
+
+        
+        //  value
+        start = end + 1;
+        if ((end = indexOf(line, delimiter, start)) == -1) {
+            LOG.info("ERROR PARSING VALUE");
+            return null;
+        }                
+        //event.setValue(new BigDecimal(line, start, end - start, MathContext.DECIMAL32)); 
+        event[2] = new BigDecimal(line, start, end - start, MathContext.DECIMAL32); 
+        
+        
+        //  property
+        start = end + 1;
+        if ((end = indexOf(line, delimiter, start)) == -1) {
+            LOG.info("ERROR PARSING PROPERTY");
+            return null;
+        }
+        //event.setProperty(parseBoolean(line[start]));
+        event[3] = parseBoolean(line[start]);
+
+        
+        //  plugId
+        start = end + 1;
+        if ((end = indexOf(line, delimiter, start)) == -1) {
+            LOG.info("ERROR PARSING PLUGID");
+            return null;
+        }
+        //event.setPlugId(parseLong(line, start, end - start));
+        event[4] = parseLong(line, start, end - start);
+        
+        
+        //  householdId
+        start = end + 1;
+        if ((end = indexOf(line, delimiter, start)) == -1) {
+            LOG.info("ERROR PARSING HOUSEHOLD");
+            return null;
+        }
+        //event.setHouseholdId(parseLong(line, start, end - start));
+        event[5] = parseLong(line, start, end - start);
+        
+
+        //  houseId
+        start = end + 1;
+        //event.setHouseId(parseLong(line, start, lineBuffer.limit() - start));
+        event[6] = parseLong(line, start, lineBuffer.limit() - start);
+        
+        return event;
+    }       
+    
     public static int indexOf(char[] array, char valueToFind, int startIndex) {
         if (array == null) {
             return -1;
@@ -140,8 +219,7 @@ public class CSVReader implements Closeable {
                 return i;                    
         
         return -1;
-    }  
-    
+    }          
     
     private static long parseLong(char[] array, int offset, int length) throws NumberFormatException {        
         if (array == null) {

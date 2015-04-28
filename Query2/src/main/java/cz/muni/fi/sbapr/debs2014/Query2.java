@@ -35,11 +35,15 @@ import org.slf4j.LoggerFactory;
 import com.espertech.esper.client.deploy.Module;
 import com.espertech.esper.client.deploy.ParseException;
 import static cz.muni.fi.sbapr.debs2014.annotation.AnnotationProcessor.*;
+import cz.muni.fi.sbapr.debs2014.event.PlugAggregationEvent;
+import cz.muni.fi.sbapr.debs2014.subscriber.AverageWindow;
 import cz.muni.fi.sbapr.debs2014.subscriber.GlobalLoadAverageSubscriber;
 import cz.muni.fi.sbapr.debs2014.subscriber.RuntimeReportingSubscriber;
 import cz.muni.fi.sbapr.debs2014.subscriber.SensorEventSubscriber;
 import cz.muni.fi.sbapr.debs2014.subscriber.TestSubscriber;
 import cz.muni.fi.sbapr.debs2014.subscriber.TestSubscriber2;
+import cz.muni.fi.sbapr.debs2014.subscriber.TimeWindow;
+import cz.muni.fi.sbapr.debs2014.subscriber.TimeWindowRemoveStream;
 import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -56,6 +60,8 @@ public class Query2 {
     private static final String ENGINE_URI = Query2.class.getName();     
     private static long initTime = MILLISECONDS.convert(1377986400L, SECONDS); // Sat, 31 Aug 2013 22:00:00 GMT        
     
+    private static String path = PC_L_CSV_DATA + SORTED_TEST2;
+    private static long millis = 1000L;
         
     private static void start() {
         
@@ -117,7 +123,7 @@ public class Query2 {
         
                    
         CSVEventSender sender = new CSVEventSender();
-        sender.startSendingEvents();        
+        sender.startSendingEvents(path, millis);        
     }
     
     private static void history() {
@@ -156,7 +162,7 @@ public class Query2 {
 //        runtimeStatement.addListener(new RuntimeReportingListener());                                   
         
         
-        final File file = new File(PC_E_CSV_DATA + SORTED_100M);
+        final File file = new File(PC_L_CSV_DATA + SORTED_100M);
         CsvSensorEventInputAdapterSpec spec = new CsvSensorEventInputAdapterSpec(file);
         CsvSensorEventInputAdapter adapter = new CsvSensorEventInputAdapter(epService, spec);
         
@@ -164,7 +170,7 @@ public class Query2 {
         
 //        runtimeStatement.stop();        
 //        administrator.destroyAllStatements();
-    }            
+    }
     
     private void statementTest() {       
         Configuration configuration = new Configuration();                
@@ -255,14 +261,14 @@ public class Query2 {
                 
                 
         CSVEventSender sender = new CSVEventSender();
-        sender.startSendingEvents();
+        sender.startSendingEvents(path, millis);
     }
     
     private void quary2() { 
         Configuration configuration = new Configuration();                
         configuration.addEventType(SensorEvent.class.getSimpleName(), SensorEvent.class);                                
         configuration.getEngineDefaults().getThreading().setInternalTimerEnabled(false);         
-        configuration.addImport("cz.muni.fi.sbapr.debs2014.anotation.*");                          
+        configuration.addImport("cz.muni.fi.sbapr.debs2014.anotation.*");
         configuration.getEngineDefaults().getExpression().setMathContext(MathContext.DECIMAL32);   
 
         EPServiceProvider epService = EPServiceProviderManager.getProvider(ENGINE_URI, configuration);
@@ -285,10 +291,11 @@ public class Query2 {
 //        administrator.getStatement("TestStream2").setSubscriber(new TestSubscriber()); 
 //        administrator.getStatement("TestWindow").setSubscriber(new TestSubscriber()); 
 //        administrator.getStatement("LoadStream").setSubscriber(new SensorEventSubscriber());
+        
         administrator.getStatement("TestStatement").setSubscriber(new TestSubscriber());
         
         CSVEventSender sender = new CSVEventSender();
-        sender.startSendingEvents();
+        sender.startSendingEvents(path, millis);
             
 //        Undeploy module, destroying all statements
 //        deployAdmin.undeploy(moduleDeploymentId);
@@ -343,7 +350,7 @@ public class Query2 {
 //                .addListener(new TestListener());        
                        
         CSVEventSender sender = new CSVEventSender();
-        sender.startSendingEvents();        
+        sender.startSendingEvents(path, millis);        
     }    
     
     private void testingModule1() { 
@@ -374,7 +381,7 @@ public class Query2 {
 //        administrator.getStatement("SensorEventStream").setSubscriber(new SensorEventSubscriber());        
 //        administrator.getStatement("SensorEventStream").addListener(new SensorEventListener());               
         
-        administrator.getStatement("LoadStream").setSubscriber(new SensorEventSubscriber()); 
+        administrator.getStatement("LoadStream").setSubscriber(new SensorEventSubscriber());
 //        administrator.getStatement("LoadStream").addListener(new SensorEventListener()); 
                 
 //        administrator.getStatement("LoadAverageStream").setSubscriber(new TestSubscriber1());
@@ -382,6 +389,9 @@ public class Query2 {
         administrator.getStatement("PlugAverageStatement").setSubscriber(new TestSubscriber2());
 //        administrator.getStatement("OverPlugStatement").setSubscriber(new TestSubscriber2());        
             
+        
+        
+        
         
 //        administrator.getStatement("HourWindowStatement").addListener(new SensorEventListener());    
 //        administrator.getStatement("LoadSumStream").setSubscriber(new GlobalLoadAverageSubscriber());                      
@@ -402,11 +412,164 @@ public class Query2 {
 //        administrator.getStatement("TestWindowStatement")
 //                .setSubscriber(new TestSubscriber());
 //                .addListener(new TestListener());        
-                       
+                               
         CSVEventSender sender = new CSVEventSender();
-        sender.startSendingEvents();        
+        sender.startSendingEvents(path, millis);
     }        
-          
+    
+    private void testingModule3() {
+        Configuration configuration = new Configuration();              
+        configuration.addEventType(SensorEvent.class.getSimpleName(), SensorEvent.class);
+        configuration.addEventType(PlugAggregationEvent.class.getSimpleName(), PlugAggregationEvent.class);
+                
+        
+//        //  Plug aggregation event type
+//        Map<String, Object> def = new HashMap<>();                        
+//        def.put("houseId", Long.class);
+//        def.put("householdId", Long.class);
+//        def.put("plugId", Long.class);
+//        def.put("value", BigDecimal.class);        
+//        configuration.addEventType("PlugAggregationEvent", def);
+        
+        // p
+        //configuration.getEngineDefaults().getExecution().setPrioritized(true);        
+        // p700
+        //configuration.getEngineDefaults().getViewResources().setShareViews(false);        
+        // p701 
+        //configuration.getEngineDefaults().getThreading().setInsertIntoDispatchPreserveOrder(false);
+        // p701
+        //configuration.getEngineDefaults().getThreading().setListenerDispatchPreserveOrder(false);
+        // p582
+        configuration.getEngineDefaults().getEventMeta().setDefaultEventRepresentation(Configuration.EventRepresentation.OBJECTARRAY);
+        
+        configuration.getEngineDefaults().getThreading().setInternalTimerEnabled(false);         
+        configuration.addImport("cz.muni.fi.sbapr.debs2014.anotation.*");                       
+        MathContext mathContext = new MathContext(6, RoundingMode.HALF_UP);
+        mathContext = MathContext.DECIMAL32;
+        
+        configuration.getEngineDefaults().getExpression().setMathContext(mathContext);   
+
+        EPServiceProvider epService = EPServiceProviderManager.getProvider(ENGINE_URI, configuration);
+                                       
+        EPRuntime runtime = epService.getEPRuntime(); 
+        runtime.sendEvent(new TimerControlEvent(TimerControlEvent.ClockType.CLOCK_EXTERNAL));
+        runtime.sendEvent(new CurrentTimeEvent(initTime));                   
+                        
+        EPAdministrator administrator = epService.getEPAdministrator(); 
+        EPDeploymentAdmin deploymentAdministrator = administrator.getDeploymentAdmin();                                       
+        deploy(add(load("/testingModule-03.epl")));
+                                                                                        
+        //administrator.getStatement("Runtime-Stream").setSubscriber(new RuntimeReportingSubscriber());
+        
+        administrator.getStatement("Sensor-Event-Stream").setSubscriber(new SensorEventSubscriber());            
+        
+        //administrator.getStatement("Load-Event-Stream").setSubscriber(new SensorEventSubscriber());                        
+        
+//        administrator.getStatement("LoadStream").setSubscriber(new SensorEventSubscriber());
+//        administrator.getStatement("LoadStream").addListener(new SensorEventListener()); 
+                                        
+        administrator.getStatement("Time-Window-PrintOnInsert").setSubscriber(new TimeWindow("Time-Window")); 
+        
+        // Time-Window-IRStreamR
+        administrator.getStatement("Time-Window-InsertStreamI").setSubscriber(new TimeWindow("Time-Window-InsertStreamI"));
+//        administrator.getStatement("Time-Window-InsertStreamR").setSubscriber(new TimeWindow("Time-Window-InsertStreamR"));
+//        administrator.getStatement("Time-Window-RemoveStreamI").setSubscriber(new TimeWindow("Time-Window-RemoveStreamI"));
+//        administrator.getStatement("Time-Window-RemoveStreamR").setSubscriber(new TimeWindow("Time-Window-RemoveStreamR"));
+//        administrator.getStatement("Time-Window-IRStreamI").setSubscriber(new TimeWindow("Time-Window-IRStreamI"));
+//        administrator.getStatement("Time-Window-IRStreamR").setSubscriber(new TimeWindow("Time-Window-IRStreamR"));
+//        
+        //administrator.getStatement("Time-Window-InsertStream").setSubscriber(new TimeWindow("Insert-Stream"));
+        //administrator.getStatement("Time-Window-IRStream").setSubscriber(new TimeWindow("Time-Window-IR-Stream")); 
+        //administrator.getStatement("Time-Window-RemoveStream").setSubscriber(new TimeWindow("Remove-Stream")); 
+        
+        //administrator.getStatement("Plug-Average-Window-Snapshot").setSubscriber(new AverageWindowSubscriber());            
+        //administrator.getStatement("Average-Window-Stream").setSubscriber(new AverageWindowStream());
+                
+        // Test-Agregation
+        //administrator.getStatement("Test-Agregation").setSubscriber(new AverageWindow());   
+        administrator.getStatement("Test-Agregation-Stream").setSubscriber(new AverageWindow()); 
+        
+        CSVEventSender sender = new CSVEventSender();
+        sender.startSendingEventsAsArray(path, 0);
+    }
+    
+    private void testingModule4() {
+        Configuration configuration = new Configuration();              
+        configuration.addEventType(SensorEvent.class.getSimpleName(), SensorEvent.class);
+        configuration.addEventType(PlugAggregationEvent.class.getSimpleName(), PlugAggregationEvent.class);
+                        
+//        //  Plug aggregation event type
+//        Map<String, Object> def = new HashMap<>();                        
+//        def.put("houseId", Long.class);
+//        def.put("householdId", Long.class);
+//        def.put("plugId", Long.class);
+//        def.put("value", BigDecimal.class);        
+//        configuration.addEventType("PlugAggregationEvent", def);
+                
+        // p
+        //configuration.getEngineDefaults().getExecution().setPrioritized(true);        
+        // p700
+        //configuration.getEngineDefaults().getViewResources().setShareViews(false);        
+        // p701 
+        //configuration.getEngineDefaults().getThreading().setInsertIntoDispatchPreserveOrder(false);
+        // p701
+        //configuration.getEngineDefaults().getThreading().setListenerDispatchPreserveOrder(false);
+        // p582
+        configuration.getEngineDefaults().getEventMeta().setDefaultEventRepresentation(Configuration.EventRepresentation.OBJECTARRAY);
+        
+        configuration.getEngineDefaults().getThreading().setInternalTimerEnabled(false);         
+        configuration.addImport("cz.muni.fi.sbapr.debs2014.anotation.*");                       
+        MathContext mathContext = new MathContext(6, RoundingMode.HALF_UP);
+        mathContext = MathContext.DECIMAL32;
+        
+        configuration.getEngineDefaults().getExpression().setMathContext(mathContext);   
+
+        EPServiceProvider epService = EPServiceProviderManager.getProvider(ENGINE_URI, configuration);
+                                       
+        EPRuntime runtime = epService.getEPRuntime(); 
+        runtime.sendEvent(new TimerControlEvent(TimerControlEvent.ClockType.CLOCK_EXTERNAL));
+        runtime.sendEvent(new CurrentTimeEvent(initTime));     
+                        
+        EPAdministrator administrator = epService.getEPAdministrator(); 
+        EPDeploymentAdmin deploymentAdministrator = administrator.getDeploymentAdmin();                                       
+        deploy(add(load("/testingModule-04.epl")));
+                                                                                        
+        //administrator.getStatement("Runtime-Stream").setSubscriber(new RuntimeReportingSubscriber());
+        
+        administrator.getStatement("Sensor-Event-Stream").setSubscriber(new SensorEventSubscriber());            
+        
+        //administrator.getStatement("Load-Event-Stream").setSubscriber(new SensorEventSubscriber());                        
+        
+//        administrator.getStatement("LoadStream").setSubscriber(new SensorEventSubscriber());
+//        administrator.getStatement("LoadStream").addListener(new SensorEventListener()); 
+                                        
+        administrator.getStatement("Time-Window-PrintOnInsert").setSubscriber(new TimeWindow("Time-Window")); 
+        
+        // Time-Window-IRStreamR
+        //administrator.getStatement("Time-Window-InsertStream").setSubscriber(new TimeWindow("Time-Window-InsertStream"));
+//        administrator.getStatement("Time-Window-RemoveStream").setSubscriber(new TimeWindow("Time-Window-RemoveStream"));
+        administrator.getStatement("Time-Window-IRStream").setSubscriber(new TimeWindow("Time-Window-IRStream"));
+
+        //administrator.getStatement("Time-Window-InsertStream").setSubscriber(new TimeWindow("Insert-Stream"));
+        //administrator.getStatement("Time-Window-IRStream").setSubscriber(new TimeWindow("Time-Window-IR-Stream")); 
+        //administrator.getStatement("Time-Window-RemoveStream").setSubscriber(new TimeWindow("Remove-Stream")); 
+        
+        //administrator.getStatement("Plug-Average-Window-Snapshot").setSubscriber(new AverageWindowSubscriber());            
+        //administrator.getStatement("Average-Window-Stream").setSubscriber(new AverageWindowStream());
+
+        // Test-Agregation
+        //administrator.getStatement("Test-Agregation").setSubscriber(new AverageWindow());
+        //administrator.getStatement("Test-Agregation").setSubscriber(new AverageWindow()); 
+                
+        administrator.getStatement("Plug-Average-Window-Populate-I").setSubscriber(new TimeWindow("Plug-Average-Window-Populate-I"));
+        administrator.getStatement("Plug-Average-Window-Populate-R").setSubscriber(new TimeWindow("Plug-Average-Window-Populate-R"));                
+                
+        administrator.getStatement("Plug-Average-Window-PrintOnInsert").setSubscriber(new TimeWindow("Plug-Average-Window"));       
+        
+        CSVEventSender sender = new CSVEventSender();
+        sender.startSendingEventsAsArray(path, 0);
+    }
+    
     private void processAnotations(EPAdministrator administrator) {
     
         if (administrator == null)
@@ -419,10 +582,10 @@ public class Query2 {
     
     private List<Module> loadModules(final String[] resourceNames) {
                        
-        EPDeploymentAdmin administrator = EPServiceProviderManager.getProvider(ENGINE_URI)
+        EPDeploymentAdmin deployAdmin = EPServiceProviderManager.getProvider(ENGINE_URI)
                 .getEPAdministrator().getDeploymentAdmin();
         
-        if (administrator == null)
+        if (deployAdmin == null)
             throw new NullPointerException("administrator");
         
         if (resourceNames == null) 
@@ -430,7 +593,7 @@ public class Query2 {
         
         List<Module> modules = new ArrayList<>();     
         try {            
-            for (String resourceName : resourceNames) {                
+            for (String resourceName : resourceNames) {
                 
                 if (resourceName == null ) {                    
                     LOG.trace("can not get resource : resourceName is null");                    
@@ -444,7 +607,7 @@ public class Query2 {
                 
                 LOG.trace("loading resource : {}", resourceName);
                 URL resourceUrl = getClass().getResource(resourceName);                
-                modules.add(administrator.read(resourceUrl));
+                modules.add(deployAdmin.read(resourceUrl));
             }            
         } catch (final IOException | ParseException ex) {
             LOG.info(ex.toString());
@@ -456,10 +619,10 @@ public class Query2 {
     
     private List<String> addModules(final Collection<Module> modules) {
         
-        EPDeploymentAdmin administrator = EPServiceProviderManager.getProvider(ENGINE_URI)
+        EPDeploymentAdmin deployAdmin = EPServiceProviderManager.getProvider(ENGINE_URI)
                 .getEPAdministrator().getDeploymentAdmin();
         
-        if (administrator == null)
+        if (deployAdmin == null)
             throw new NullPointerException("administrator");
         
         if (modules == null)
@@ -474,7 +637,7 @@ public class Query2 {
             }
             
             LOG.trace("adding module : {}", module.getName());
-            deploymentId.add(administrator.add(module));
+            deploymentId.add(deployAdmin.add(module));
         }
         LOG.trace("added modules : {}", deploymentId.size());        
         return deploymentId;
@@ -482,10 +645,10 @@ public class Query2 {
     
     private List<DeploymentResult> deployModules(final Collection<Module> modules) {
         
-        EPDeploymentAdmin administrator = EPServiceProviderManager.getProvider(ENGINE_URI)
+        EPDeploymentAdmin deployAdmin = EPServiceProviderManager.getProvider(ENGINE_URI)
                 .getEPAdministrator().getDeploymentAdmin();
         
-        if (administrator == null)
+        if (deployAdmin == null)
             throw new NullPointerException("administrator");
         
         if (modules == null) 
@@ -501,7 +664,7 @@ public class Query2 {
                 
                 final DeploymentOptions options = new DeploymentOptions();
                 LOG.trace("deploying module : {}", module.getName());                
-                deployedModules.add(administrator.deploy(module, options));                
+                deployedModules.add(deployAdmin.deploy(module, options));                
             }         
         } catch (final DeploymentException ex) {  
             LOG.info(ex.toString());
@@ -513,48 +676,50 @@ public class Query2 {
                 
     private Module load(final String resourceName) {
         
-        EPDeploymentAdmin administrator = EPServiceProviderManager.getProvider(ENGINE_URI)
+        EPDeploymentAdmin deployAdmin = EPServiceProviderManager.getProvider(ENGINE_URI)
                 .getEPAdministrator().getDeploymentAdmin();
         
-        if (administrator == null)
+        if (deployAdmin == null)
             throw new NullPointerException("administrator");
         
         if (resourceName == null) 
             throw new NullPointerException("resourceName");
         
-        Module module = null;                
+        Module module = null;    
         try {
-            LOG.trace("loading resource : {}", resourceName);
-            module = administrator.read(getClass().getResource(resourceName));
+            LOG.trace("Loading resource : {}", resourceName);
+            module = deployAdmin.read(getClass().getResource(resourceName));
         } catch (final IOException | ParseException ex) {
-            //LOG.info(ex.toString());
-            ex.printStackTrace();
+            LOG.info(ex.toString());
+            module = null;
         }
         return module;
     }       
     
     private Module add(final Module module) {
         
-        EPDeploymentAdmin administrator = EPServiceProviderManager.getProvider(ENGINE_URI)
+        EPDeploymentAdmin deployAdmin = EPServiceProviderManager.getProvider(ENGINE_URI)
                 .getEPAdministrator().getDeploymentAdmin();
         
-        if (administrator == null)
+        if (deployAdmin == null)
             throw new NullPointerException("administrator");
         
         if (module == null)
             throw new NullPointerException("module");                                         
         
-        LOG.trace("adding module : {}", module.getName());
-        administrator.add(module);             
+        
+        LOG.trace("Adding module : {}", module.getName());
+        deployAdmin.add(module);
+//        LOG.trace("Module Added");
         return module;
     }
     
     private Module deploy(final Module module) {
         
-        EPDeploymentAdmin administrator = EPServiceProviderManager.getProvider(ENGINE_URI)
+        EPDeploymentAdmin deployAdmin = EPServiceProviderManager.getProvider(ENGINE_URI)
                 .getEPAdministrator().getDeploymentAdmin();
         
-        if (administrator == null)
+        if (deployAdmin == null)
             throw new NullPointerException("administrator");
         
         if (module == null)
@@ -564,12 +729,13 @@ public class Query2 {
         try {
             final DeploymentOptions options = new DeploymentOptions();
             
-            LOG.trace("deploying module : {}", module.getName());    
-            deployedResult = administrator.deploy(module, options);     
+            LOG.trace("Deploying module : {}", module.getName());
+            deployedResult = deployAdmin.deploy(module, options);     
         } catch (final DeploymentException ex) {
-//            LOG.info(ex.toString());
-            ex.printStackTrace();            
+            LOG.info(ex.toString());
+//            ex.printStackTrace();   
         }
+//        LOG.trace("Module deployed");
         return module;
     }       
     
@@ -622,7 +788,8 @@ public class Query2 {
                 
         Query2 q = new Query2();
 //        q.testingModule(); 
-        q.testingModule1();   
+//        q.testingModule1();
+        q.testingModule4();
 //        q.quary2();
         
 //        Query2.start();

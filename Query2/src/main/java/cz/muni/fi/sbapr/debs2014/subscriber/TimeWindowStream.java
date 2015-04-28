@@ -1,28 +1,51 @@
 package cz.muni.fi.sbapr.debs2014.subscriber;
 
+import com.espertech.esper.client.EventPropertyGetter;
+import com.espertech.esper.client.EventType;
 import cz.muni.fi.sbapr.debs2014.event.SensorEvent;
 import java.math.BigDecimal;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Row-by-row update method preference : 
- * 1. EventType
- * 2. Map/EventType multi-row
+ * Row-by-row update method preference : 1. EventType 2. Map/EventType multi-row
  * 3. Object[]
- * 
+ *
  * @author Lukáš Pástor
  */
-public class SensorEventSubscriber {
-    
-    private static final Logger LOG = 
-            LoggerFactory.getLogger(SensorEventSubscriber.class);   
-    private static final String className = 
-            SensorEventSubscriber.class.getSimpleName();      
-    
-                    
+public class TimeWindowStream {
+
+    private static final Logger LOG
+            = LoggerFactory.getLogger(TimeWindowStream.class);
+    private static final String className
+            = TimeWindowStream.class.getSimpleName();
+
+    private static final Map<String, String> deliveryT = new HashMap<>();
+    private static final String[] deliveryType
+            = {"[rbr-i] : ", "[rbr-r] : ", "[mr -i] : ", "[mr -r] : "};
+
+    private static final String INPUT_STREAM = "is";
+    private static final String REMOVE_STREAM = "rs";
+
+    private static final String ROW_BY_ROW_I = "[rbr-i] : ";
+    private static final String ROW_BY_ROW_R = "[rbr-r] : ";
+    private static final String MULTI_ROW_I = "[mr -i] : ";
+    private static final String MULTI_ROW_R = "[mr -r] : ";
+
+    private static final String PLAIN
+            = "{{}, {}, {}, {}, {}, {}, {}}";
+    private static final String FULL
+            = "id : {}, "
+            + "timestamp : {}, "
+            + "value : {}, "
+            + "property : {}, "
+            + "plugId : {}, "
+            + "householdId : {}, "
+            + "houseId : {} ";
+
     /**
      * Called by the engine before delivering events to update methods
      *
@@ -31,25 +54,18 @@ public class SensorEventSubscriber {
      * @param removeStreamLength the number of events of the remove stream to be
      * delivered
      */
-    private 
-//    public
-        void updateStart(int insertStreamLength, int removeStreamLength) {
+//    public void updateStart(int insertStreamLength, int removeStreamLength) {
 //        LOG.trace("updateStart i : {}, r : {}", insertStreamLength, removeStreamLength);
-//        System.out.println("A");
-    }
-    
+//    }
     /**
      * Called by the engine after delivering events
      */
-    private 
-//    public 
-        void updateEnd() {
+//    public void updateEnd() {   
 //        LOG.trace("updateEmd");
-//        System.out.println("B\n");
-    }
+//    }
     
+// Row-by-row Delivery :  
     
-    // Row-by-row Delivery :               
     /**
      * The update method to support input stream delivery of explicit select
      * clause representing all properties of SensorEvents in row-by-row delivery
@@ -72,7 +88,7 @@ public class SensorEventSubscriber {
             final long householdId, 
             final long houseId
     ) {
-        LOG.info(".I(X) - [{}, {}, {}, {}, {}, {}, {}]", 
+        LOG.info(".update(X) - [{}, {}, {}, {}, {}, {}, {}]", 
                 id, 
                 timestamp, 
                 value, 
@@ -81,6 +97,8 @@ public class SensorEventSubscriber {
                 householdId, 
                 houseId);
     }
+    
+    
 
     /**
      * The update method to support remove stream delivery of explicit select
@@ -103,10 +121,10 @@ public class SensorEventSubscriber {
             final BigDecimal value, 
             final boolean property, 
             final long plugId, 
-            final long householdId,
+            final long householdId, 
             final long houseId
     ) {
-        LOG.info(".R(X) - [{}, {}, {}, {}, {}, {}, {}]", 
+        LOG.info(".updateRStream(X) - [{}, {}, {}, {}, {}, {}, {}]", 
                 id, 
                 timestamp, 
                 value, 
@@ -117,7 +135,7 @@ public class SensorEventSubscriber {
     }
 
     
-  
+    
     /**
      * The update method to support input stream delivery of wildcards (*) in
      * select clause representing all properties of SensorEvents in row-by-row
@@ -126,7 +144,7 @@ public class SensorEventSubscriber {
      * @param newEvent SensorEvent input stream event
      */
     public void update(final SensorEvent newEvent) {
-        LOG.info(".I(T) - {}", newEvent.toStringPlain());
+        LOG.info(".update(T) - {}", newEvent.toStringPlain());
     }
 
     /**
@@ -139,12 +157,13 @@ public class SensorEventSubscriber {
      * @param oldEvent remove stream events
      */
     public void updateRStream(final SensorEvent oldEvent) {
-        LOG.info(".R(T) - {}", oldEvent.toStringPlain());
+        //System.out.println("Event leaves the time window");
+        LOG.info(".updateRStream(T) - {}", oldEvent.toStringPlain());
     }
 
     
     
-    /** 
+    /**
      * The update method to support delivery of select clause columns as an
      * object array. Each item in the object array represents a column in the
      * select clause.
@@ -152,8 +171,7 @@ public class SensorEventSubscriber {
      * @param event columns in the select clause
      */
     private void update(final Object[] event) {
-        System.out.println("");
-        //LOG.info(".I(O[]) - {}", event);
+        LOG.info(".update(O[])     - {}", event);
 //        if (event != null && event.length > 0) {
 //            LOG.info(".update(O[]) - {}", Arrays.toString(event));
 //        }
@@ -169,15 +187,14 @@ public class SensorEventSubscriber {
      * @param event remove stream events
      */
     public void updateRStream(final Object[] event) {        
-        LOG.info(".R(O[]) - {}", event); 
-    //LOG.info(".R(O[]) - {}", Arrays.toString(event));        
+        LOG.info(".updateRStream(O[]) - {}", event);        
 //        if (event != null && event.length > 0) {
 //            LOG.info(".updateRStream(O[]) - {}", event);
 //        }
     }
     
     
-    
+
     /**
      * The update method to support delivery of select clause columns as an map
      * representation of each row. Each column in the select clause is then made
@@ -186,9 +203,9 @@ public class SensorEventSubscriber {
      *
      * @param row input stream event
      */
-    private void update(final Map row) {
-        LOG.info(".I(M) - {}", row.toString());
-    }
+//    public void update(final Map row) {
+//        LOG.info(".update(M) - {}", row.toString());
+//    }
 
     /**
      * The update method to support remove stream delivery in form of Map
@@ -199,13 +216,14 @@ public class SensorEventSubscriber {
      *
      * @param row remove stream event
      */
-    private void updateRStream(final Map row) {
-        LOG.info(".R(M) - {}", row.toString());
-    }
+//    public void updateRStream(final Map row) {        
+//        LOG.info(".updateRStream(M) - {}", row.toString());
+//    }
+
     
     
+// Multi-Row Delivery  :    
     
-// Multi-Row Delivery  :        
     /**
      * The update method to support input stream delivery of SensorEvent in
      * multi-row delivery mode.
@@ -213,22 +231,25 @@ public class SensorEventSubscriber {
      * @param newEvents input stream events
      * @param oldEvents remove stream events
      */
-    public void update(final SensorEvent[] newEvents, final SensorEvent[] oldEvents) {
-
-        //LOG.trace(formatedLabel);
-        if (newEvents != null && newEvents.length > 0) {
-            for (SensorEvent newEvent : newEvents) {
-                update(newEvent);                
-            }
-        }        
-        if (oldEvents!= null && oldEvents.length > 0) {    
-            for (SensorEvent oldEvent : oldEvents) {
-                updateRStream(oldEvent);                                
-            }
-        } 
-       // LOG.trace("----------------------------------------------------------\n");                       
-    }  
-    
+//    public void update(final SensorEvent[] newEvents, final SensorEvent[] oldEvents) {
+//
+//        LOG.trace("[{}]-{} update(SensorEvent[])", className, MULTI_ROW_I);
+//        if (newEvents != null && newEvents.length > 0) {
+//            LOG.info("[{}]-{} newEvents.", className, MULTI_ROW_I);
+//            int newEventsCount = newEvents.length;
+//            for (SensorEvent newEvent : newEvents) {
+//                log(newEvent, MULTI_ROW_I, newEventsCount, PLAIN);
+//            }
+//        }
+//
+//        if (oldEvents != null && oldEvents.length > 0) {
+//            LOG.info("[{}]-{} oldEvents.", className, MULTI_ROW_R);
+//            int oldEventsCount = oldEvents.length;          
+//            for (SensorEvent oldEvent : oldEvents) {
+//                log(oldEvent, MULTI_ROW_R, oldEventsCount, PLAIN);
+//            }
+//        }
+//    }  
     
     /**
      * The update method to support input stream delivery of multiple
@@ -237,18 +258,43 @@ public class SensorEventSubscriber {
      * @param insertStream array of input stream SensorEvent events
      * @param removeStream array of output stream SensorEvent events
      */
-    public void update(final Object[][] insertStream, final Object[][] removeStream) {             
-        //LOG.trace(formatedLabel);        
-        if (insertStream != null && insertStream.length > 0) {                      
-            for (Object[] newEvent : insertStream) {   
-                update(newEvent);                                
+    public void update(final Object[][] insertStream, final Object[][] removeStream) {
+                
+        LOG.trace("-----------------------Input/Output-----------------------");                        
+        if (insertStream != null && insertStream.length > 0) {
+            //int newEventsCount = insertStream.length;
+            for (Object[] newEvent : insertStream) {
+                update(newEvent);                
             }
-        }
-        
-        if (removeStream != null && removeStream.length > 0) {      
+        }        
+        if (removeStream != null && removeStream.length > 0) {
+            //int oldEventsCount = removeStream.length;          
             for (Object[] oldEvent : removeStream) {
-                updateRStream(oldEvent);                
+                updateRStream(oldEvent);                                
             }
-        }
-    }        
+        } 
+       // LOG.trace("----------------------------------------------------------\n");
+    }
+
+    private void print(Object[] event) {
+        String str = String.format("%2d, %d, %6.3f, %b, %2d, %2d, %2d",
+            (long) event[0],
+            (long) event[1],
+            (BigDecimal) event[2], 
+            (boolean) event[3],
+            (long) event[4], 
+            (long) event[5], 
+            (long) event[6]);          
+        LOG.info(".update(O[]) - {}", str); 
+        
+        
+//        return String.format("%2d, %d, %6.3f, %b, %2d, %2d, %2d",
+//            (long) event[0],
+//            (long) event[1],
+//            (BigDecimal) event[2], 
+//            (boolean) event[3],
+//            (long) event[4], 
+//            (long) event[5], 
+//            (long) event[6]);                          
+    }
 }

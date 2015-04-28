@@ -3,13 +3,15 @@
  
     <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">         
         <encoder>
+            <!--<pattern>%date |%-5level| [%thread] [%file:%line] - %msg%n%ex{full}</pattern>--> 
             <!--<pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>-->
             <!--<pattern>%date{ISO8601} [%thread] - %msg%n</pattern>-->
-            <pattern>[%d{HH:mm:ss.SSS}] [%thread] - %msg%n</pattern>
+            <!--<pattern>%date{ISO8601} [%thread] [%file : %line] - %msg%n</pattern>-->
+            <pattern>[%d{HH:mm:ss.SSS}] %logger{0}%msg%n</pattern>
         </encoder>       
     </appender>    
         
-    <logger name="cz.muni.fi.sbapr.debs2014" level="INFO" />        
+    <logger name="cz.muni.fi.sbapr.debs2014" level="TRACE" />     
     
     <root level="INFO">  
         <appender-ref ref="STDOUT" />     

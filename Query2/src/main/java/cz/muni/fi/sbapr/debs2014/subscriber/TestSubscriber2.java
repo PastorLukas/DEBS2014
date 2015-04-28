@@ -2,6 +2,7 @@ package cz.muni.fi.sbapr.debs2014.subscriber;
 
 import cz.muni.fi.sbapr.debs2014.event.SensorEvent;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.Arrays;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -103,5 +104,26 @@ public class TestSubscriber2 {
 //            ,   ts_start
 //            ,   ts_stop
         );                   
+    }        
+        
+    public void update
+        (
+//                final long id
+//            ,   final long timestamp
+//            ,   final BigDecimal value
+//            ,   final Boolean property
+                final long plugId
+            ,   final long householdId
+            ,   final long houseId
+//            ,   final long count
+//            ,   final long size
+//            ,   final double median
+            ,   final Double plugAvg
+//            ,   final BigDecimal windowAvg
+//            ,   final long ts_start
+//            ,   final long ts_stop
+        )
+    {
+        update(plugId, householdId, houseId, BigDecimal.valueOf(plugAvg).setScale(3, RoundingMode.HALF_UP));                        
     }        
 }
